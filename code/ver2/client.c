@@ -102,10 +102,9 @@ int main(int argc, char const *argv[])
 		bzero(buffer, maxBufferSize);
 	  n = read(sockfd, buffer, maxBufferSize);
 	  if (n < 0){
-	    // error("ERROR reading from socket",0);
-	    continue;
+	    error("ERROR reading from socket",0);
 	  }
- 		// printf("Server response: %s\n", buffer); //response from the server
+ 		printf("Server response: %s\n", buffer); //response from the server
 	  responses++;
     gettimeofday(&end, NULL);
 	  serverResponseTime=end.tv_sec - start.tv_sec-2; // subtracting '2' since we introduced sleep

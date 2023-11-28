@@ -3,32 +3,95 @@
 #include <string.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 #include <pthread.h>
+
+#define maxBufferSize 4096
+
+char buffer[maxBufferSize];
 
 void error(char *msg){
 	perror(msg);
 	exit(1);
 }
 
+void comp_exe(int socketFD, int errFD){
+  int n=-1;
+  sprintf(buffer,"gcc -o temp temp.c 2>err.txt");
+  if(system(buffer)!=0){
+    n=read(errFD,buffer,maxBufferSize);
+    write(socketFD,buffer,n);
+    write(socketFD,"compilation failed\n",19);
+    system(buffer);
+    return;
+  }
+
+  sprintf(buffer,"chmod +x temp");
+  if(system(buffer)!=0){
+    n=read(errFD,buffer,maxBufferSize);
+    write(socketFD,buffer,n);
+    write(socketFD,"execution permission denied\n",28);
+    system(buffer);
+    return;
+  }
+  bzero(buffer, maxBufferSize);
+  sprintf(buffer,"./temp 1>err.txt");
+  n=system(buffer);
+  printf("\n");
+  if(n!=0){
+    write(socketFD,"execution error\n",16);
+  }
+  bzero(buffer, maxBufferSize);
+  n=read(errFD,buffer,maxBufferSize);
+  write(socketFD,buffer,n);
+  if(strcmp("1 2 3 4 5 6 7 8 9 10\n",buffer)==0){
+	    n = write(socketFD, "success", 7);
+	    if (n < 0)
+	        error("ERROR writing to socket");
+	} 
+  else{
+	n = write(socketFD, "WRONG OUTPUT", 12);
+	if (n < 0)
+	    error("ERROR writing to socket");
+}
+
+  sprintf(buffer,"rm -f err.txt temp temp.c");
+  system(buffer);
+}
+
 void *start_function(void *sockfd){
 	int newsockfd = *(int *) sockfd;
-	char buffer[256];
-	bzero(buffer,256);
-	int d=10;
-	int n;
-	while(d--){
-		n= read(newsockfd,buffer,255);
-		if (n<0)
-			error("Error reading from the socket");
+	int filesize=read(newsockfd,buffer,maxBufferSize);  // size of incoming file
+  if(filesize<0){
+    error("error while reading the size of file");
+  }
 
-		printf("message received %s",buffer);
-		n=write(newsockfd,"i read your message",19);
+  filesize=atoi(buffer);
 
-		if(n<0)
-			error("Error while writing to socket");
-	}
-	close(newsockfd);
-	// pthread_exit(NULL);
+  struct timeval end;
+  sprintf(buffer,"temp.c");
+  int tempFD=open(buffer,O_CREAT|O_RDWR,0644); //creating a temp file to store the uploaded file
+  sprintf(buffer,"err.txt");
+  int errFD=open(buffer,O_CREAT|O_RDWR,0644); //creating a temp file to store the uploaded file
+  
+
+  bzero(buffer, maxBufferSize);
+  int n;//=read(newsockfd, buffer, maxBufferSize);   //reading from the socket
+  while(1){
+    n=read(newsockfd, buffer, maxBufferSize);
+    write(tempFD,buffer,n);
+    filesize=filesize-n;
+    if (n < 0)
+      error("ERROR reading from socket");
+    if(filesize<1)  //checks if server recieved the full file or not
+      break;
+  }
+  write(tempFD,"\n",1);  // one new line char to remove the warning of null char
+  sleep(1);
+  comp_exe(newsockfd,errFD);
+  close(tempFD);
+  close(newsockfd);
+  
 }
 int main(int argc, char const *argv[])
 {
@@ -53,15 +116,12 @@ int main(int argc, char const *argv[])
 	listen(sockfd,5);
 	clilen=sizeof(cli_addr);
 
-	// while(1){
-		newsockfd=accept(sockfd,(struct sockaddr *)&cli_addr, &clilen);
-		if(newsockfd<0)
-			error("Error on accept");
-		start_function(&newsockfd);  //for sinlge theaded version
-	// 	pthread_t thread;
-	// 	if(pthread_create(&thread,NULL, start_function,&newsockfd) !=0)
-	// 		printf("Failed to create Thread\n");
-	// }
+	while(1){
+    newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+    if (newsockfd < 0)
+      error("ERROR on accept");
+    start_function(&newsockfd);
+  }
 
 	return 0;
 }
