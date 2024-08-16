@@ -1,7 +1,6 @@
 # Autograding-server
+DECS project CS744: Auto grading server for C/C++ programs
 
-Auto grding server for DECS project CS744. github repo: https://github.com/gammaraylab/autograding-server
-gammaraylab/flutter_app
 ## Usage
 
 There are two versions of this autogader, the usage is as follows:
