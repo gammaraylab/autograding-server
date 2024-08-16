@@ -4,7 +4,7 @@ Auto grding server for DECS project CS744. github repo: https://github.com/gamma
 gammaraylab/flutter_app
 ## Usage
 
-There are three versions of this autogader, the usage is as follows:
+There are two versions of this autogader, the usage is as follows:
 
 #### Ver1: single threaded autograder
 
@@ -16,13 +16,6 @@ There are three versions of this autogader, the usage is as follows:
 #### Ver2: single threaded autograder with load tester
 
 `gcc -o server server.c`
-`./server <port-no>`
-`gcc -o client client.c`
-`./loadtest.sh <numClients> <loopNum> <sleepTimeSeconds> <port num>`
-
-#### Ver3: Multithreaded autograder with load tester
-
-`gcc -o server server.c -lpthread`
 `./server <port-no>`
 `gcc -o client client.c`
 `./loadtest.sh <numClients> <loopNum> <sleepTimeSeconds> <port num>`
