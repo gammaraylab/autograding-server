@@ -1,7 +1,7 @@
 # Autograding-server
 
 Auto grding server for DECS project CS744. github repo: https://github.com/gammaraylab/autograding-server
-
+gammaraylab/flutter_app
 ## Usage
 
 There are three versions of this autogader, the usage is as follows:
@@ -26,6 +26,3 @@ There are three versions of this autogader, the usage is as follows:
 `./server <port-no>`
 `gcc -o client client.c`
 `./loadtest.sh <numClients> <loopNum> <sleepTimeSeconds> <port num>`
-
-## Work
-I have not done the load testing of the version 3 and above. version 1,2 and 3 are working properly.
